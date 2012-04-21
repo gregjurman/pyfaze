@@ -16,4 +16,5 @@ pac = eeml.Pachube(API_URL, API_KEY)
 while True:
     pac.update([eeml.Data("ambient", a.ambient_sensor_readings / 10.0, unit=eeml.Fahrenheit())])
     pac.put()
+    print "Pachube updated"
     sleep(300)
