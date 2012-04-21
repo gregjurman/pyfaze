@@ -1,6 +1,5 @@
 from struct import pack, unpack, calcsize
 from functools import partial
-from collections import namedtuple
 
 __all__ = [ 'make_anafaze_type',
     "ANA_REG","ANA_BYTE", 
@@ -11,6 +10,9 @@ __all__ = [ 'make_anafaze_type',
 
 
 def make_anafaze_type(struct_def, name):
+    """
+    Creates an object that helps marshall data to and from python and the anafaze
+    """
     return type(name, (object,), 
         dict(
             to_python = partial(unpack, *[struct_def]),
