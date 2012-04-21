@@ -19,9 +19,9 @@ def calc_bcc(data):
 
 
 def build_packet_bcc(message):
-"""
-    Builds a ANA/AB packet with a BCC checksum.
-"""
+    """
+        Builds a ANA/AB packet with a BCC checksum.
+    """
     bcc = calc_bcc(message)
     out = "\x10\x02%s\x10\x03%s" % (message, bcc)
 
