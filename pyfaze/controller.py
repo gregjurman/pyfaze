@@ -41,7 +41,33 @@ def make_register_property(register):
         msg = message.replace("\x10", "\x10\x10")
         packet = "\x10\x02%s\x10\x03%s" % (msg, check)
 
-        print hexlify(packet)
+        self.ser.flushInput() # Clear out in-case of garbage
+
+        self.ser.write(packet)
+        self.ser.flush()
+
+        # Get the ACK/NACK
+        ack = None
+        attempted = 0
+        while ack not in ["\x10\x06", "\x10\x15"]:
+            ack = self.ser.read(2)
+            if not self.ser.inWaiting() and attempted == 6:
+                raise Exception("Something has gone wrong, send again")
+            attempted = attempted + 1
+
+        if ack == "\x10\x15":
+            raise Exception("Command failed to send")
+
+        # Read in data
+        data = ""
+        while '\x10\x02' not in data or '\x10\x03' not in data:
+            data = data + self.ser.read()
+
+        # Say thank you to the nice little controller.
+        #   (It's the polite thing to do)
+        self.ser.write('\x10\x06')
+
+        print hexlify(data)
 
         return None
 
@@ -97,10 +123,14 @@ class AnafazeController(object):
         self.loop_count = 0
 
         # Open the serial port
-        #self.ser = serial.Serial(
-        #    port=port,
-        #    baudrate=baud_rate,
-        #    parity=serial.PARITY_NONE,
-        #    stopbits=serial.STOPBITS_ONE,
-        #    bytesize=serial.EIGHTBITS
-        #)
+        self.ser = serial.Serial(
+            port=port,
+            baudrate=baud_rate,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS,
+            timeout=0.1,
+        )
+
+        # Do some detection
+        #self.controller_type
