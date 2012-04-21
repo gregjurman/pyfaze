@@ -3,6 +3,9 @@ from pyfaze.util import decaser, calc_bcc
 from struct import pack
 import serial
 
+from binascii import hexlify
+
+
 __all__ = ["AnafazeController"]
 
 def make_message_header(src, dest, cmd, transaction_id):
@@ -10,7 +13,7 @@ def make_message_header(src, dest, cmd, transaction_id):
         Make the message header. Helper function
     """
     return "%s%s%s\x00%s" % (
-            chr(dest & 0xff),
+            chr((dest+7) & 0xff),
             chr(src & 0xff),
             chr(cmd & 0xff),
             transaction_id)
@@ -38,7 +41,7 @@ def make_register_property(register):
         msg = message.replace("\x10", "\x10\x10")
         packet = "\x10\x02%s\x10\x03%s" % (msg, check)
 
-        print packet
+        print hexlify(packet)
 
         return None
 
@@ -55,7 +58,7 @@ def make_register_property(register):
         msg = message.replace("\x10", "\x10\x10")
         packet = "\x10\x02%s\x10\x03%s" % (msg, check)
 
-        print packet
+        print hexlify(packet)
 
     return property(get_register, set_register, register.__doc__)
 
@@ -82,7 +85,7 @@ class AnafazeControllerMeta(type):
 class AnafazeController(object):
     __metaclass__ = AnafazeControllerMeta
 
-    def __init__(self, port, baud_rate, destination=0, bcc=True):
+    def __init__(self, port, baud_rate, destination=1, bcc=True):
         """
             Create a new connection to a controller via RS232.
         """
