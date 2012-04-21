@@ -1,6 +1,8 @@
 from pyfaze.types import *
 from collections import namedtuple
 
+register_list = []
+
 def slicer(iterable, width):
     """
         Slices iterables into chunks. How does itertools not have this function.
@@ -41,6 +43,11 @@ def make_anafaze_register(cls_name, name, register_location, _type, read_only=Fa
 
         return in_list
 
+    iterated = True
+    if isinstance(_type, int):
+        _type = make_anafaze_type('B'*_type, cls_name+"Type")
+        iterated = False
+
     reg = type(cls_name, (AnafazeRegister,), 
         dict(
             __doc__ = AnafazeRegister.__doc__.format(
@@ -53,9 +60,12 @@ def make_anafaze_register(cls_name, name, register_location, _type, read_only=Fa
             name = name,
             type = _type,
             location = register_location,
+            iterated = iterated
             byte_location = ANA_REG.from_python(register_location),
         )
     )
+
+    register_list.append(reg)
 
     return reg
 
@@ -63,6 +73,6 @@ def make_anafaze_register(cls_name, name, register_location, _type, read_only=Fa
 PropBandGain = make_anafaze_register("PropBandGain", "Proportional Band/Gain", 0x0020, ANA_UC)
 DerivativeTerm = make_anafaze_register("DerivativeTerm", "Derivative Term", 0x0060, ANA_UC)
 IntegralTerm = make_anafaze_register("IntegralTerm", "Integral Term", 0x00A0, ANA_UI)
-EEPROMVersion = make_anafaze_register("EEPROMVersion", "EEPROM Version Code", 0x0BF0, ANA_UC, True)
+EEPROMVersion = make_anafaze_register("EEPROMVersion", "EEPROM Version Code", 0x0BF0, 12, True)
 AmbientSensorReadings = make_anafaze_register("AmbientSensorReadings", "Ambient Sensor Readings", 0x0720, ANA_SI, True)
-ControllerType = make_anafaze_register("ControllerType", "Controller Type", 0x47F0, ANA_UC, True)
+ControllerType = make_anafaze_register("ControllerType", "Controller Type", 0x47F0, ANA_BYTE, True)
