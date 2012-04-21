@@ -1,0 +1,14 @@
+*.pyc
+*.egg*
+Thumbs.db
+docs/.output/
+.coverage
+.noseids
+dist
+build
+virtualenv
+*.egg
+*.orig
+*.reject
+external
+*.swp
