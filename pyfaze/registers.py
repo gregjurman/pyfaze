@@ -24,7 +24,7 @@ class AnafazeRegister(object):
     pass
 
 
-def make_anafaze_register(cls_name, name, register_location, _type, read_only=False, long_description=None):
+def make_anafaze_register(cls_name, name, register_location, _type, iterated=True, read_only=False, long_description=None):
     """
     Generates a register class that is used to marshall data to and from the Anafaze controller.
 
@@ -60,7 +60,6 @@ def make_anafaze_register(cls_name, name, register_location, _type, read_only=Fa
 
         return in_list
 
-    iterated = True
     if isinstance(_type, int):
         # If we got a set number rather than a marshall type its a fixed byte-size and
         #   non-iterable.
@@ -89,9 +88,16 @@ def make_anafaze_register(cls_name, name, register_location, _type, read_only=Fa
     return reg
 
 
-PropBandGain = make_anafaze_register("PropBandGain", "Proportional Band/Gain", 0x0020, ANA_UC)
-DerivativeTerm = make_anafaze_register("DerivativeTerm", "Derivative Term", 0x0060, ANA_UC)
-IntegralTerm = make_anafaze_register("IntegralTerm", "Integral Term", 0x00A0, ANA_UI)
-EEPROMVersion = make_anafaze_register("EEPROMVersion", "EEPROM Version Code", 0x0BF0, 12, True)
-AmbientSensorReadings = make_anafaze_register("AmbientSensorReadings", "Ambient Sensor Readings", 0x0720, ANA_SI, True)
-ControllerType = make_anafaze_register("ControllerType", "Controller Type", 0x47F0, ANA_BYTE, True)
+PropBandGain = make_anafaze_register("PropBandGain", "Proportional Band/Gain",
+    0x0020, ANA_UC)
+DerivativeTerm = make_anafaze_register("DerivativeTerm", "Derivative Term",
+    0x0060, ANA_UC)
+IntegralTerm = make_anafaze_register("IntegralTerm", "Integral Term", 
+    0x00A0, ANA_UI)
+EEPROMVersion = make_anafaze_register("EEPROMVersion", "EEPROM Version Code", 
+    0x0BF0, 12, iterated=False, read_only=True)
+AmbientSensorReadings = make_anafaze_register("AmbientSensorReadings", 
+    "Ambient Sensor Readings", 
+    0x0720, ANA_SI, iterated=False, read_only=True)
+ControllerType = make_anafaze_register("ControllerType", "Controller Type", 
+    0x47F0, ANA_BYTE, iterated=False, read_only=True)
