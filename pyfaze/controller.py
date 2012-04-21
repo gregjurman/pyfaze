@@ -18,6 +18,19 @@ def make_message_header(src, dest, cmd, transaction_id):
             chr(cmd & 0xff),
             transaction_id)
 
+
+def disect_packet(packet):
+    data = packet[2:len(packet)-3]
+    out_data = packet[8:-3]
+    bcc_check = packet[-1]
+
+    check = calc_bcc(data)
+
+    if bcc_check != check:
+        raise Exception("Expected %s, got %s for checksum" % (ord(check), ord(bcc_check)))
+
+    return out_data
+
 def make_register_property(register):
     """
     Generates a property for accessing the register.
@@ -31,10 +44,11 @@ def make_register_property(register):
         else:
             data_len = chr(register.byte_size & 0xff)
 
+        tran_id = self._transaction.next()
         message = make_message_header(
             0, self.destination,
-            1, self._transaction.next()
-            ) + register.byte_location + data_len
+            1, tran_id
+            ) + str(register.byte_location) + str(data_len)
 
         check = self._checksum(message)
 
@@ -59,17 +73,21 @@ def make_register_property(register):
             raise Exception("Command failed to send")
 
         # Read in data
-        data = ""
-        while '\x10\x02' not in data or '\x10\x03' not in data:
-            data = data + self.ser.read()
+        msg_back = ""
+        while '\x10\x02' not in msg_back or '\x10\x03' not in msg_back:
+            msg_back= msg_back + self.ser.read()
+
+        # don't forget our check-byte
+        msg_back = msg_back + self.ser.read(1)
 
         # Say thank you to the nice little controller.
         #   (It's the polite thing to do)
         self.ser.write('\x10\x06')
 
-        print hexlify(data)
-
-        return None
+        returned_data = disect_packet(msg_back)
+    
+        # actually marshall
+        return register.to_python(returned_data)
 
     def set_register(self, value):
         data = register.from_python(value)
