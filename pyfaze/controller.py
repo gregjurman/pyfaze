@@ -55,18 +55,17 @@ def make_register_property(register):
         msg = message.replace("\x10", "\x10\x10")
         packet = "\x10\x02%s\x10\x03%s" % (msg, check)
 
-        self.ser.flushInput() # Clear out in-case of garbage
+        self.ser.open()
 
         self.ser.write(packet)
-        self.ser.flush()
 
         # Get the ACK/NACK
-        ack = None
+        ack = ""
         attempted = 0
         while ack not in ["\x10\x06", "\x10\x15"]:
-            ack = self.ser.read(2)
+            ack = ack + self.ser.read(1)
             if not self.ser.inWaiting() and attempted == 6:
-                raise Exception("Something has gone wrong, send again")
+                break
             attempted = attempted + 1
 
         if ack == "\x10\x15":
@@ -83,6 +82,8 @@ def make_register_property(register):
         # Say thank you to the nice little controller.
         #   (It's the polite thing to do)
         self.ser.write('\x10\x06')
+
+        self.ser.close()
 
         returned_data = disect_packet(msg_back)
     
@@ -147,8 +148,10 @@ class AnafazeController(object):
             parity=serial.PARITY_NONE,
             stopbits=serial.STOPBITS_ONE,
             bytesize=serial.EIGHTBITS,
-            timeout=0.1,
+            timeout=1,
         )
 
-        # Do some detection
-        #self.controller_type
+        self.ser.close()
+        
+        # Do some basic detection
+        self.loop_count = 2 ** ((self.system_status[1] >> 6) + 2) + 1

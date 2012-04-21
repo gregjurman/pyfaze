@@ -12,3 +12,4 @@ virtualenv
 *.reject
 external
 *.swp
+eeml_config.py

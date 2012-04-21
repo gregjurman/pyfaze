@@ -53,7 +53,11 @@ def make_anafaze_register(cls_name, name, register_location, _type, iterated=Tru
         in_list = []
         for v in slicer(str(value), _type.byte_size):
             data = "".join(v)
-            in_list.append(_type.to_python(data)[0])
+            m = _type.to_python(data)
+            if len(m) == 1:
+                in_list.append(m[0])
+            else:
+                in_list.append(m)
 
         if len(in_list) == 1:
             return in_list[0]
@@ -101,3 +105,5 @@ AmbientSensorReadings = make_anafaze_register("AmbientSensorReadings",
     0x0720, ANA_SI, iterated=False, read_only=True)
 ControllerType = make_anafaze_register("ControllerType", "Controller Type", 
     0x47F0, ANA_BYTE, iterated=False, read_only=True)
+SystemStatus = make_anafaze_register("SystemStatus", "System Status", 
+    0x0AC8, 4, iterated=False, read_only=True)
