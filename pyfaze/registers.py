@@ -99,7 +99,7 @@ DerivativeTerm = make_anafaze_register("DerivativeTerm", "Derivative Term",
 IntegralTerm = make_anafaze_register("IntegralTerm", "Integral Term", 
     0x00A0, ANA_UI)
 EEPROMVersion = make_anafaze_register("EEPROMVersion", "EEPROM Version Code", 
-    0x0BF0, 12, iterated=False, read_only=True)
+    0x0BF0, 3, iterated=False, read_only=True)
 AmbientSensorReadings = make_anafaze_register("AmbientSensorReadings", 
     "Ambient Sensor Readings", 
     0x0720, ANA_SI, iterated=False, read_only=True)

@@ -1,5 +1,6 @@
 from pyfaze.registers import register_list
 from pyfaze.util import decaser, calc_bcc
+from pyfaze.comm import do_command
 from struct import pack
 import serial
 
@@ -55,38 +56,16 @@ def make_register_property(register):
         msg = message.replace("\x10", "\x10\x10")
         packet = "\x10\x02%s\x10\x03%s" % (msg, check)
 
-        self.ser.open()
+        msg_back = None
+        with self.ser as port:
+            port.open()
+            msg_back = do_command(port, packet)
 
-        self.ser.write(packet)
-
-        # Get the ACK/NACK
-        ack = ""
-        attempted = 0
-        while ack not in ["\x10\x06", "\x10\x15"]:
-            ack = ack + self.ser.read(1)
-            if not self.ser.inWaiting() and attempted == 6:
-                break
-            attempted = attempted + 1
-
-        if ack == "\x10\x15":
-            raise Exception("Command failed to send")
-
-        # Read in data
-        msg_back = ""
-        while '\x10\x02' not in msg_back or '\x10\x03' not in msg_back:
-            msg_back= msg_back + self.ser.read()
-
-        # don't forget our check-byte
-        msg_back = msg_back + self.ser.read(1)
-
-        # Say thank you to the nice little controller.
-        #   (It's the polite thing to do)
-        self.ser.write('\x10\x06')
-
-        self.ser.close()
+        if not msg_back:
+            raise AttributeError("Cannot read attribute from controller")
 
         returned_data = disect_packet(msg_back)
-    
+ 
         # actually marshall
         return register.to_python(returned_data)
 
@@ -102,8 +81,6 @@ def make_register_property(register):
 
         msg = message.replace("\x10", "\x10\x10")
         packet = "\x10\x02%s\x10\x03%s" % (msg, check)
-
-        print hexlify(packet)
 
     return property(get_register, set_register, register.__doc__)
 
@@ -149,9 +126,10 @@ class AnafazeController(object):
             stopbits=serial.STOPBITS_ONE,
             bytesize=serial.EIGHTBITS,
             timeout=1,
+            interCharTimeout=0.2
         )
 
-        self.ser.close()
-        
+        self.ser.nonblocking()
+
         # Do some basic detection
         self.loop_count = 2 ** ((self.system_status[1] >> 6) + 2) + 1

@@ -1,7 +1,4 @@
-from time import sleep
-
 def get_resp_code(port):
-    port.timeout = 1
     back = None
     for i in range(3): # Sent DLE ENQ three times?
         back = port.read(2) # Wait for DLE ACK or DLE NAK
@@ -13,13 +10,12 @@ def get_resp_code(port):
 
     return back
 
-def send_cmd_packet(port, message):
+
+def send_command_packet(port, message):
     resp = None
     for i in range(3): # sent command three times?
-        port.flush()
-
         port.write(message) # Send command packet
-        sleep(0.2) # Wait 200ms
+        #sleep(0.2) # Wait 200ms
 
         resp = get_resp_code(port)
 
@@ -28,21 +24,19 @@ def send_cmd_packet(port, message):
         else:
             resp = None
 
-    return (resp is '\x10\x06')
+    return (resp == '\x10\x06')
 
 
 def recv_response_packet(port):
-    port.timeout = 1
     # Read in data
     msg = None
     for i in range(3):
-        sleep(0.2)
-
         back = None
-        while port.inWaiting():
-            if back is None:
-                back = ""
-            back = back + port.read(port.inWaiting())
+        while (back is None and port.inWaiting() == 0) or port.inWaiting():
+            out = port.read(256)
+            if out:
+                back = back if back else '' + out
+
 
         if not back:
             # timed out
@@ -57,15 +51,14 @@ def recv_response_packet(port):
     return msg
 
 def do_command(port, command):
-    port.timeout = 1
     msg = None
     for i in range(3):
         if not send_command_packet(port, command): # send command three times
             msg = None
             break
 
-        msg = recv_response_packet(port) # Try recieving 3 times, 
-            if msg:
-                break
+        msg = recv_response_packet(port) # Try recieving 3 times,
+        if msg:
+            break
 
     return msg
