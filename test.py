@@ -13,8 +13,14 @@ API_URL = 56611
 
 pac = eeml.Pachube(API_URL, API_KEY)
 
+print "Starting loop"
+
 while True:
-    pac.update([eeml.Data("ambient", a.ambient_sensor_readings / 10.0, unit=eeml.Fahrenheit())])
+    val = a.ambient_sensor_readings / 10.0
+    print "Current Value:", val
+
+    pac.update([eeml.Data("ambient", val, unit=eeml.Fahrenheit())])
     pac.put()
-    print "Pachube updated"
-    sleep(300)
+
+    print "    Pachube updated:", val
+    sleep(300) # sleep for 5 minutes
