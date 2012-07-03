@@ -32,7 +32,7 @@ while True:
 
         print "    Cosm updated:"
         print "        Indoor: ", in_val
-        print "       Outdoor: ", in_val
+        print "       Outdoor: ", out_val
         sleep(300) # sleep for 5 minutes
 
     except AttributeError as ae:
