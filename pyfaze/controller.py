@@ -58,7 +58,8 @@ def make_register_property(register):
 
         msg_back = None
         with self.ser as port:
-            port.open()
+            if not port.isOpen():
+                port.open()
             msg_back = do_command(port, packet)
 
         if not msg_back:
