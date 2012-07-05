@@ -94,16 +94,25 @@ def make_anafaze_register(cls_name, name, register_location, _type, iterated=Tru
 
 PropBandGain = make_anafaze_register("PropBandGain", "Proportional Band/Gain",
     0x0020, ANA_UC)
+
 DerivativeTerm = make_anafaze_register("DerivativeTerm", "Derivative Term",
     0x0060, ANA_UC)
+
 IntegralTerm = make_anafaze_register("IntegralTerm", "Integral Term", 
     0x00A0, ANA_UI)
+
 EEPROMVersion = make_anafaze_register("EEPROMVersion", "EEPROM Version Code", 
     0x0BF0, 3, iterated=False, read_only=True)
+
 AmbientSensorReadings = make_anafaze_register("AmbientSensorReadings", 
     "Ambient Sensor Readings", 
     0x0720, ANA_SI, iterated=False, read_only=True)
+
+ProcessVariable = make_anafaze_register("ProcessVariable", "Process Variable",
+    0x0280, ANA_SI, iterated=True, read_only=True)
+
 ControllerType = make_anafaze_register("ControllerType", "Controller Type", 
     0x47F0, ANA_BYTE, iterated=False, read_only=True)
+
 SystemStatus = make_anafaze_register("SystemStatus", "System Status", 
     0x0AC8, 4, iterated=False, read_only=True)
