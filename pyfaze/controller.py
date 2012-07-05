@@ -47,7 +47,7 @@ def make_register_property(register):
 
         tran_id = self._transaction.next()
         message = make_message_header(
-            0, self.destination,
+            self.source, self.destination,
             1, tran_id
             ) + str(register.byte_location) + str(data_len)
 
@@ -66,15 +66,18 @@ def make_register_property(register):
             raise AttributeError("Cannot read attribute from controller")
 
         returned_data = disect_packet(msg_back)
- 
+
+        clean_data = returned_data.replace("\x10\x10", "\x10")
+
         # actually marshall
-        return register.to_python(returned_data)
+        return register.to_python(clean_data)
 
     def set_register(self, value):
+        # XXX: Needs testing
         data = register.from_python(value)
-    
+
         message = make_message_header(
-            0, self.destination, 
+            self.source, self.destination,
             8, self._transaction.next()
             ) + register.byte_location + data
 
@@ -82,6 +85,15 @@ def make_register_property(register):
 
         msg = message.replace("\x10", "\x10\x10")
         packet = "\x10\x02%s\x10\x03%s" % (msg, check)
+
+        msg_back = None
+        with self.ser as port:
+            if not port.isOpen():
+                port.open()
+            msg_back = do_command(port, packet)
+
+        if not msg_back:
+            raise AttributeError("Cannot write attribute to controller.")
 
     return property(get_register, set_register, register.__doc__)
 
@@ -108,11 +120,12 @@ class AnafazeControllerMeta(type):
 class AnafazeController(object):
     __metaclass__ = AnafazeControllerMeta
 
-    def __init__(self, port, baud_rate, destination=1, bcc=True):
+    def __init__(self, port, baud_rate, source=0, destination=1, bcc=True):
         """
             Create a new connection to a controller via RS232.
         """
         self.destination = destination
+        self.source = source
         self._checksum = calc_bcc if bcc else (lambda x: None)
         self._transaction = transaction_gen()
 
@@ -126,7 +139,7 @@ class AnafazeController(object):
             parity=serial.PARITY_NONE,
             stopbits=serial.STOPBITS_ONE,
             bytesize=serial.EIGHTBITS,
-            timeout=1,
+            timeout=0.5,
             interCharTimeout=0.2
         )
 
